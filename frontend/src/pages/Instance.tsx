@@ -26,6 +26,7 @@ import { publicFetch } from '../utils/api';
 import { normalizePublicClients } from '../utils/publicClients';
 import {
   collectCursorHistory,
+  normalizePublicGpuRecords,
   normalizePublicMonitorRecords,
   type PublicMonitorRecord,
 } from '../utils/publicHistory';
@@ -79,6 +80,9 @@ export default function Instance() {
   const [clientLoading, setClientLoading] = useState(true);
   const [recordsLoading, setRecordsLoading] = useState(true);
   const [recordsError, setRecordsError] = useState<string | null>(null);
+  const [, setGpuRecords] = useState<ReturnType<typeof normalizePublicGpuRecords>>([]);
+  const [, setGpuLoading] = useState(false);
+  const [, setGpuError] = useState<string | null>(null);
   const clientRequestRef = useRef(0);
   const recordsRequestRef = useRef(0);
   const [error, setError] = useState<string | null>(null);
@@ -236,6 +240,48 @@ export default function Instance() {
 
     return () => controller.abort();
   }, [timeRange, uuid, authLoading, isAuthenticated, pingRefresh]);
+
+  useEffect(() => {
+    setGpuRecords([]);
+    setGpuError(null);
+    setGpuLoading(false);
+    if (!uuid || authLoading || !client?.gpu_name || client.uuid !== uuid) return;
+    setGpuLoading(true);
+    const controller = new AbortController();
+    const endTs = Date.now();
+    const startTs = endTs - timeRangeMs[timeRange];
+    const start = new Date(startTs).toISOString();
+    const end = new Date(endTs).toISOString();
+
+    collectCursorHistory(
+      (cursor) => publicFetch(`/records/gpu?${historyQuery({
+        uuid,
+        start,
+        end,
+        cursor,
+        limit: 500,
+        include_hidden: isAuthenticated ? 1 : undefined,
+      })}`, { signal: controller.signal }),
+      {
+        cursor: end,
+        start,
+        end,
+        normalize: normalizePublicGpuRecords,
+        signal: controller.signal,
+      },
+    )
+      .then((data) => {
+        if (!controller.signal.aborted) setGpuRecords(data);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setGpuError('加载 GPU 历史失败，请重试');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setGpuLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [uuid, timeRange, client?.uuid, client?.gpu_name, authLoading, isAuthenticated]);
 
   const handleTimeRangeChange = (value: string) => {
     setTimeRange(value as TimeRange);
