@@ -11,7 +11,7 @@ import { PUBLIC_DATA_READY_EVENT } from './utils/publicDataEvents';
 
 const loadLayout = () => import('./pages/Layout');
 const loadIndex = () => import('./pages/Index');
-const loadInstance = () => import('./pages/Instance');
+const loadInstance = () => import('./pages/InstanceHuilang');
 const loadLogin = () => import('./pages/Login');
 const loadDbInit = () => import('./pages/DbInit');
 const loadNotFound = () => import('./pages/NotFound');
