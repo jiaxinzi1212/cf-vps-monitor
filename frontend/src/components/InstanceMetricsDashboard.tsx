@@ -9,6 +9,7 @@ import {
   buildPingChartRows, getPingSeriesWithRecords, getPingTimeDomain,
   getPingYAxisDomain, type PingTaskSeries,
 } from '../utils/pingChart';
+import './InstanceMetricsDashboard.css';
 
 export type InstanceDashboardRange = '1h' | '12h' | '3d';
 type Mode = 'load' | 'ping';
@@ -99,12 +100,12 @@ function PingPanel({ series, range, loading, error, onRefresh }: { series: PingT
         <button type="button" onClick={onRefresh}>↻ 刷新</button>
       </div>
     </Flex>
-    <div className="hl-ping-chips">{ordered.map((item,index)=>{
+    <div className="hl-ping-chips">{ordered.map((item)=>{
       const text=`${item.task.label} ${item.task.target}`; const def=netDefs.find(d=>d.re.test(text)); const color=def?.color ?? item.task.color; const valid=item.records.filter(r=>Number.isFinite(Number(r.value))); const failed=valid.filter(r=>Number(r.value)<0).length; const loss=valid.length?failed/valid.length*100:0; const last=[...item.records].reverse().find(r=>Number(r.value)>=0); const ping=last?Number(last.value):null;
       return <div key={item.task.key} className="hl-ping-chip" style={{borderColor:color}}><span style={{background:color}}/><strong>{def?.label ?? item.task.label}</strong><b>{ping==null?'超时':`${ping.toFixed(1)} ms`}</b><em>{loss.toFixed(1)}%</em></div>;
     })}</div>
-    {showLoss && <div className="hl-loss-list">{ordered.map((item,index)=>{ const text=`${item.task.label} ${item.task.target}`; const def=netDefs.find(d=>d.re.test(text)); return <div className="hl-loss-row" key={item.task.key}><span>{def?.label ?? item.task.label}</span><div>{item.records.slice(-96).map((r,i)=><i key={`${r.time}-${i}`} className={Number(r.value)>=0?'ok':'bad'} />)}</div></div>; })}</div>}
-    <div className="hl-ping-chart"><ResponsiveContainer width="100%" height="100%"><LineChart data={rows} margin={{top:8,right:12,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" opacity={0.18}/><XAxis dataKey="time" type="number" domain={xDomain} tickFormatter={(v)=>fmtTime(Number(v),range)} fontSize={10}/><YAxis width={52} domain={yDomain} tickFormatter={(v)=>`${Math.round(Number(v))} ms`} fontSize={10}/><Tooltip formatter={(v:number)=>`${Math.round(Number(v))} ms`}/>{ordered.map((item,index)=>{ const text=`${item.task.label} ${item.task.target}`; const def=netDefs.find(d=>d.re.test(text)); return <Line key={item.task.key} type={smooth?'monotone':'linear'} dataKey={item.task.key} name={def?.label ?? item.task.label} stroke={def?.color ?? item.task.color} strokeWidth={2.1} dot={false} connectNulls={connectNulls} isAnimationActive={false}/>; })}</LineChart></ResponsiveContainer></div>
+    {showLoss && <div className="hl-loss-list">{ordered.map((item)=>{ const text=`${item.task.label} ${item.task.target}`; const def=netDefs.find(d=>d.re.test(text)); return <div className="hl-loss-row" key={item.task.key}><span>{def?.label ?? item.task.label}</span><div>{item.records.slice(-96).map((r,i)=><i key={`${r.time}-${i}`} className={Number(r.value)>=0?'ok':'bad'} />)}</div></div>; })}</div>}
+    <div className="hl-ping-chart"><ResponsiveContainer width="100%" height="100%"><LineChart data={rows} margin={{top:8,right:12,bottom:0,left:0}}><CartesianGrid strokeDasharray="3 3" opacity={0.18}/><XAxis dataKey="time" type="number" domain={xDomain} tickFormatter={(v)=>fmtTime(Number(v),range)} fontSize={10}/><YAxis width={52} domain={yDomain} tickFormatter={(v)=>`${Math.round(Number(v))} ms`} fontSize={10}/><Tooltip formatter={(v:number)=>`${Math.round(Number(v))} ms`}/>{ordered.map((item)=>{ const text=`${item.task.label} ${item.task.target}`; const def=netDefs.find(d=>d.re.test(text)); return <Line key={item.task.key} type={smooth?'monotone':'linear'} dataKey={item.task.key} name={def?.label ?? item.task.label} stroke={def?.color ?? item.task.color} strokeWidth={2.1} dot={false} connectNulls={connectNulls} isAnimationActive={false}/>; })}</LineChart></ResponsiveContainer></div>
   </>;
 }
 
