@@ -1,0 +1,42 @@
+name: Migrate repository to huilang CF-Server-Monitor
+
+on:
+  push:
+    branches:
+      - migration/huilang-cf-server-monitor
+    paths:
+      - '.github/workflows/migrate-huilang.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout migration branch
+        uses: actions/checkout@v4
+        with:
+          ref: migration/huilang-cf-server-monitor
+          fetch-depth: 0
+
+      - name: Clone upstream CF-Server-Monitor
+        run: |
+          git clone --depth=1 https://github.com/huilang-me/CF-Server-Monitor.git /tmp/cfsm-upstream
+
+      - name: Replace repository contents with upstream
+        run: |
+          rsync -a --delete --exclude='.git' /tmp/cfsm-upstream/ ./
+          rm -rf .git/index.lock || true
+
+      - name: Commit upstream snapshot
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          if git diff --cached --quiet; then
+            echo 'No changes to commit.'
+            exit 0
+          fi
+          git commit -m 'chore: replace CF VPS Monitor with huilang CF-Server-Monitor'
+          git push origin HEAD:migration/huilang-cf-server-monitor
