@@ -4,10 +4,10 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/apply-huilang-instance.mjs && vite",
-    "lint": "node scripts/apply-huilang-instance.mjs && tsc -p tsconfig.json --noEmit",
+    "dev": "vite",
+    "lint": "tsc -p tsconfig.json --noEmit",
     "test": "node --test",
-    "build": "node scripts/apply-huilang-instance.mjs && tsc -b && vite build",
+    "build": "tsc -b && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
